@@ -4,6 +4,7 @@ import za.co.entelect.challenge.command.*;
 import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.CellType;
 import za.co.entelect.challenge.enums.Direction;
+import za.co.entelect.challenge.enums.Profession;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,20 +42,20 @@ public class Bot {
             return new ShootCommand(direction);
         }
 
+        if (CanBananaBomb(currentWorm)) {
+            for (Worm Target : opponent.worms) {
+                if (Distance(currentWorm.position, Target.position) <= 5) {
+                    return new BananaCommand(Target.position.x,Target.position.y);
+                }
+            }
+        }
+
         List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        int cellIdx = random.nextInt(surroundingBlocks.size());
-        int powerUpIdx = 0;
+
         Position healthPack = new Position();
         if (powerUpPosition.size() > 0) {
-            powerUpIdx = random.nextInt(powerUpPosition.size());
-//            healthPack = powerUpPosition.get(powerUpIdx);
             healthPack = NearestPowerUp();
         }
-        System.out.println(powerUpPosition.size());
-        Cell block = surroundingBlocks.get(cellIdx);
-        Position center = new Position();
-        center.x = 17;
-        center.y = 17;
         if (powerUpPosition.size() > 0){
             return DigAndMove(healthPack);
         }
@@ -271,5 +272,19 @@ public class Bot {
         }
         Position TargetPosition = Target.position;
         return DigAndMove(TargetPosition);
+    }
+
+    public boolean CanBananaBomb (MyWorm myWorm){
+        boolean flag = false;
+        if (myWorm.profession == Profession.AGENT){
+            for (Worm Target : opponent.worms){
+                if (Distance(myWorm.position, Target.position) <= 5){
+                    if (myWorm.bananaBombs.count > 0){
+                        flag = true;
+                    }
+                }
+            }
+        }
+        return flag;
     }
 }
