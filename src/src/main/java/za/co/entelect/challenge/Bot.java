@@ -5,15 +5,17 @@ import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.CellType;
 import za.co.entelect.challenge.enums.Direction;
 
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Bot {
 
-    private Random random;
-    private GameState gameState;
-    private Opponent opponent;
-    private MyWorm currentWorm;
+    private final Random random;
+    private final GameState gameState;
+    private final Opponent opponent;
+    private final MyWorm currentWorm;
+    private final MyPlayer myPlayer;
     private final Cell[][] myMap;
     private final List<Position> powerUpPosition;
 
@@ -24,11 +26,12 @@ public class Bot {
         this.currentWorm = getCurrentWorm(gameState);
         this.myMap = gameState.map;
         this.powerUpPosition = getPowerUpPosition();
+        this.myPlayer = gameState.myPlayer;
     }
 
     private MyWorm getCurrentWorm(GameState gameState) {
         return Arrays.stream(gameState.myPlayer.worms)
-                .filter(myWorm -> myWorm.id == gameState.currentWormId)
+                .filter(myWorm -> myWorm.id == myPlayer.currentWormId)
                 .findFirst()
                 .get();
     }
@@ -47,7 +50,7 @@ public class Bot {
             powerUpIdx = random.nextInt(powerUpPosition.size());
             healthPack = powerUpPosition.get(powerUpIdx);
         }
-        
+
         Position center = new Position();
         center.x = 17;
         center.y = 17;

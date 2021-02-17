@@ -1,6 +1,7 @@
 package za.co.entelect.challenge.entities;
 
 import com.google.gson.annotations.SerializedName;
+import za.co.entelect.challenge.enums.Profession;
 
 public class Worm {
     @SerializedName("id")
@@ -17,4 +18,10 @@ public class Worm {
 
     @SerializedName("movementRange")
     public int movementRange;
+
+    @SerializedName("roundsUntilUnfrozen")
+    public int roundsUntilUnfrozen;
+
+    @SerializedName("profession")
+    public Profession profession;
 }
