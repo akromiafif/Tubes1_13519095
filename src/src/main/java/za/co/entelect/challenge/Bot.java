@@ -39,14 +39,26 @@ public class Bot {
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
             return new ShootCommand(direction);
-        }
-
-        Position healthPack = new Position();
-        if (powerUpPosition.size() > 0) {
-            healthPack = NearestPowerUp();
-            return DigAndMove(healthPack);
         } else {
-            return Hunt();
+            return Strategy(currentWorm);
+        }
+    }
+    public Command Strategy (MyWorm myWorm){
+        Worm Target = NearestEnemy(currentWorm);
+        if (CanSnowBall(currentWorm,Target)){
+            return new SnowBallCommand(Target.position.x,Target.position.y);
+        }
+        else if (CanBananaBomb(currentWorm,Target)){
+            return new BananaCommand(Target.position.x,Target.position.y);
+        }
+        else {
+            Position healthPack = new Position();
+            if (powerUpPosition.size() > 0) {
+                healthPack = NearestPowerUp();
+                return DigAndMove(healthPack);
+            } else {
+                return Hunt();
+            }
         }
     }
 
@@ -236,11 +248,11 @@ public class Bot {
     }
 
     public Command Hunt(){
-        Position TargetPosition = NearestEnemy(currentWorm);
+        Position TargetPosition = NearestEnemy(currentWorm).position;
         return DigAndMove(TargetPosition);
     }
 
-    public Position NearestEnemy (MyWorm myWorm) {
+    public Worm NearestEnemy (MyWorm myWorm) {
         Position MyWormPosition = myWorm.position;
         Worm Target = new Worm();
         int min = 1000;
@@ -253,6 +265,23 @@ public class Bot {
                 }
             }
         }
-        return Target.position;
+        return Target;
     }
+
+    public boolean CheckDirection_E(MyWorm myWorm){
+        Position MyWormPosition = myWorm.position;
+        boolean flag = true;
+        Cell cell = new Cell();
+        Worm[] TeamWorm = gameState.myPlayer.worms;
+        for (int i = myWorm.position.x+1;i <= myWorm.position.x+4;i++){
+            for(int j = 0;j < TeamWorm.length;j++) {
+                cell = gameState.map[myWorm.position.y][i];
+                if ((TeamWorm[i].position.x == cell.x && TeamWorm[i].position.y == cell.y) || (cell.type == CellType.DIRT)) {
+                    flag = false;
+                }
+            }
+        }
+        return flag;
+    }
+
 }
