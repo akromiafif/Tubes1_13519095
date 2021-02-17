@@ -5,17 +5,15 @@ import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.CellType;
 import za.co.entelect.challenge.enums.Direction;
 
-
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Bot {
 
-    private final Random random;
-    private final GameState gameState;
-    private final Opponent opponent;
-    private final MyWorm currentWorm;
-    private final MyPlayer myPlayer;
+    private Random random;
+    private GameState gameState;
+    private Opponent opponent;
+    private MyWorm currentWorm;
     private final Cell[][] myMap;
     private final List<Position> powerUpPosition;
 
@@ -26,12 +24,11 @@ public class Bot {
         this.currentWorm = getCurrentWorm(gameState);
         this.myMap = gameState.map;
         this.powerUpPosition = getPowerUpPosition();
-        this.myPlayer = gameState.myPlayer;
     }
 
     private MyWorm getCurrentWorm(GameState gameState) {
         return Arrays.stream(gameState.myPlayer.worms)
-                .filter(myWorm -> myWorm.id == myPlayer.currentWormId)
+                .filter(myWorm -> myWorm.id == gameState.currentWormId)
                 .findFirst()
                 .get();
     }
@@ -44,13 +41,17 @@ public class Bot {
             return new ShootCommand(direction);
         }
 
+        List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
+        int cellIdx = random.nextInt(surroundingBlocks.size());
         int powerUpIdx = 0;
         Position healthPack = new Position();
         if (powerUpPosition.size() > 0) {
             powerUpIdx = random.nextInt(powerUpPosition.size());
-            healthPack = powerUpPosition.get(powerUpIdx);
+//            healthPack = powerUpPosition.get(powerUpIdx);
+            healthPack = NearestPowerUp();
         }
-
+        System.out.println(powerUpPosition.size());
+        Cell block = surroundingBlocks.get(cellIdx);
         Position center = new Position();
         center.x = 17;
         center.y = 17;
@@ -58,16 +59,38 @@ public class Bot {
             return DigAndMove(healthPack);
         }
         else {
-            return DigAndMove(center);
+            return Hunt();
         }
+//        if (currentWorm.position.x <= healthPack.x) {
+//            block.x = currentWorm.position.x + 1;
+//        } else {
+//            block.x = currentWorm.position.x - 1;
+//        }
+//
+//        if (currentWorm.position.y <= healthPack.y) {
+//            block.y = currentWorm.position.y + 1;
+//        } else {
+//            block.y = currentWorm.position.y - 1;
+//        }
+//
+//        if (block.type == CellType.AIR) {
+//            return new MoveCommand(block.x, block.y);
+//        } else if (block.type == CellType.DIRT) {
+//            return new DigCommand(block.x, block.y);
+//        }
+//
+//        return new DoNothingCommand();
     }
 
 
-    private Command DigAndMove(Position destination) {
-        Position Mywormpost = currentWorm.position;
-        Position NextCell = FindNextCellinPath(Mywormpost,destination);
 
-        Cell block = gameState.map[NextCell.y][NextCell.x];
+    public Command DigAndMove(Position destination) {
+        Position Mywormpost;
+        Mywormpost = currentWorm.position;
+        Position NextCell = FindNextCellinPath(Mywormpost,destination);
+        int x = NextCell.x;
+        int y = NextCell.y;
+        Cell block = gameState.map[y][x];
         if (block.type == CellType.AIR) {
             return new MoveCommand(block.x, block.y);
         } else if (block.type == CellType.DIRT) {
@@ -78,22 +101,37 @@ public class Bot {
         }
     }
 
+    public Position NearestPowerUp (){
+        int min = 1000;
+        Position NearestPowerUpPosition = new Position();
+        for (Position Nearest : powerUpPosition){
+            if (Distance(currentWorm.position,Nearest) < min){
+                min = Distance(currentWorm.position,Nearest);
+                NearestPowerUpPosition = Nearest;
+            }
+        }
+        return NearestPowerUpPosition;
+    }
+
     public Position FindNextCellinPath (Position origin, Position destination){
         Position NextPos = new Position();
-
         if (origin.x < destination.x){
             NextPos.x = origin.x + 1;
-        } else if (origin.x > destination.x){
+        }
+        else if (origin.x > destination.x){
             NextPos.x = origin.x - 1;
-        } else {
+        }
+        else {
             NextPos.x = origin.x;
         }
 
         if (origin.y < destination.y){
             NextPos.y = origin.y + 1;
-        } else if (origin.y > destination.y){
+        }
+        else if (origin.y > destination.y){
             NextPos.y = origin.y - 1;
-        } else {
+        }
+        else {
             NextPos.y = origin.y;
         }
 
@@ -186,6 +224,12 @@ public class Bot {
         return (int) (Math.sqrt(Math.pow(aX - bX, 2) + Math.pow(aY - bY, 2)));
     }
 
+    private int Distance (Position a,Position b){
+        double dx = Math.pow(a.x - b.x,2);
+        double dy = Math.pow(a.y - b.y,2);
+        return (int) (Math.sqrt((dx + dy)));
+    }
+
     private boolean isValidCoordinate(int x, int y) {
         return x >= 0 && x < gameState.mapSize
                 && y >= 0 && y < gameState.mapSize;
@@ -210,5 +254,22 @@ public class Bot {
         }
 
         return Direction.valueOf(builder.toString());
+    }
+
+    public Command Hunt(){
+        Position MyWormposition = currentWorm.position;
+        int min = 1000;
+        Worm Target = new Worm();
+        for (Worm EnemyWorm : opponent.worms){
+            if (EnemyWorm.health > 0){
+                int temp = Distance(MyWormposition,EnemyWorm.position);
+                if (temp < min){
+                    min = temp;
+                    Target = EnemyWorm;
+                }
+            }
+        }
+        Position TargetPosition = Target.position;
+        return DigAndMove(TargetPosition);
     }
 }
