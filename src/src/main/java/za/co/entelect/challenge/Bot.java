@@ -38,9 +38,22 @@ public class Bot {
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            return new ShootCommand(direction);
+            
+            for (int i=-1; i<=1; i++) {
+                for (int j=-1; j<=1; j++) {
+                    if (i != 0 && j != 0) {
+                        if (CheckDirection(currentWorm, i, j)) {
+                            return new ShootCommand(direction);
+                        } else {
+                            return Strategy(currentWorm);
+                        }
+                    } else {
+                        return new DoNothingCommand();
+                    }
+                }
+            }
         } else {
-            return Strategy(currentWorm);
+            return new DoNothingCommand();
         }
     }
     public Command Strategy (MyWorm myWorm){
@@ -268,19 +281,25 @@ public class Bot {
         return Target;
     }
 
-    public boolean CheckDirection_E(MyWorm myWorm){
-        Position MyWormPosition = myWorm.position;
+    public boolean CheckDirection(MyWorm myWorm, int vertical, int horizontal){
         boolean flag = true;
-        Cell cell = new Cell();
+        Cell cell;
         Worm[] TeamWorm = gameState.myPlayer.worms;
-        for (int i = myWorm.position.x+1;i <= myWorm.position.x+4;i++){
-            for(int j = 0;j < TeamWorm.length;j++) {
-                cell = gameState.map[myWorm.position.y][i];
-                if ((TeamWorm[i].position.x == cell.x && TeamWorm[i].position.y == cell.y) || (cell.type == CellType.DIRT)) {
-                    flag = false;
+        int i = currentWorm.position.x;
+        int k = currentWorm.position.y;
+
+        while(i <= currentWorm.position.x + 4 && k <= currentWorm.position.y + 4) {
+                for(int j = 0;j < TeamWorm.length;j++) {
+                    cell = gameState.map[k][i];
+                    if ((TeamWorm[i].position.x == cell.x && TeamWorm[i].position.y == cell.y) || (cell.type == CellType.DIRT)) {
+                        flag = false;
+                    }
                 }
-            }
+
+                i += horizontal;
+                k += vertical;
         }
+
         return flag;
     }
 
