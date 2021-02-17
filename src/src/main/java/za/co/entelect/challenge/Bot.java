@@ -14,12 +14,16 @@ public class Bot {
     private GameState gameState;
     private Opponent opponent;
     private MyWorm currentWorm;
+    private final Cell[][] myMap;
+    private final List<Position> powerUpPosition;
 
     public Bot(Random random, GameState gameState) {
         this.random = random;
         this.gameState = gameState;
         this.opponent = gameState.opponents[0];
         this.currentWorm = getCurrentWorm(gameState);
+        this.myMap = gameState.map;
+        this.powerUpPosition = getPowerUpPosition();
     }
 
     private MyWorm getCurrentWorm(GameState gameState) {
@@ -40,7 +44,27 @@ public class Bot {
         List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
         int cellIdx = random.nextInt(surroundingBlocks.size());
 
+        int powerUpIdx = 0;
+        Position healthPack = new Position();
+        if (powerUpPosition.size() > 0) {
+            powerUpIdx = random.nextInt(powerUpPosition.size());
+            healthPack = powerUpPosition.get(powerUpIdx);
+        }
+
         Cell block = surroundingBlocks.get(cellIdx);
+
+        if (currentWorm.position.x <= healthPack.x) {
+            block.x = currentWorm.position.x + 1;
+        } else {
+            block.x = currentWorm.position.x - 1;
+        }
+
+        if (currentWorm.position.y <= healthPack.y) {
+            block.y = currentWorm.position.y + 1;
+        } else {
+            block.y = currentWorm.position.y - 1;
+        }
+
         if (block.type == CellType.AIR) {
             return new MoveCommand(block.x, block.y);
         } else if (block.type == CellType.DIRT) {
@@ -66,6 +90,23 @@ public class Bot {
         }
 
         return null;
+    }
+
+    private List<Position> getPowerUpPosition() {
+        List<Position> positions = new ArrayList<>();
+        for (int i=0; i<gameState.mapSize; i++) {
+            for (int j=0; j<gameState.mapSize; j++) {
+                PowerUp pwUp = myMap[i][j].powerUp;
+                if (pwUp != null) {
+                    Position position = new Position();
+                    position.x = myMap[i][j].x;
+                    position.y = myMap[i][j].y;
+                    positions.add(position);
+                }
+            }
+        }
+
+        return positions;
     }
 
     private List<List<Cell>> constructFireDirectionLines(int range) {
