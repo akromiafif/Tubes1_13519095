@@ -38,23 +38,12 @@ public class Bot {
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            
-            for (int i=-1; i<=1; i++) {
-                for (int j=-1; j<=1; j++) {
-                    if (i != 0 && j != 0) {
-                        if (CheckDirection(currentWorm, i, j)) {
-                            return new ShootCommand(direction);
-                        } else {
-                            return Strategy(currentWorm);
-                        }
-                    } else {
-                        return new DoNothingCommand();
-                    }
-                }
-            }
-        } else {
-            return new DoNothingCommand();
+            return new ShootCommand(direction);
+
         }
+
+        return Strategy(currentWorm);
+
     }
     public Command Strategy (MyWorm myWorm){
         Worm Target = NearestEnemy(currentWorm);
@@ -181,6 +170,10 @@ public class Bot {
     }
 
     private List<List<Cell>> constructFireDirectionLines(int range) {
+        Worm[] myWorms = gameState.myPlayer.worms;
+        Position pos1 = myWorms[0].position;
+
+
         List<List<Cell>> directionLines = new ArrayList<>();
         for (Direction direction : Direction.values()) {
             List<Cell> directionLine = new ArrayList<>();
@@ -192,10 +185,27 @@ public class Bot {
                 if (!isValidCoordinate(coordinateX, coordinateY)) {
                     break;
                 }
+                if (coordinateX == pos1.x && coordinateY == pos1.y){
+                    break;
+                }
+                if (myWorms.length > 1){
+                    Position pos2 = myWorms[1].position;
+                    if (coordinateX == pos2.x && coordinateY == pos2.y) {
+                        break;
+                    }
+                }
+
+                if (myWorms.length>2){
+                    Position pos3 = myWorms[2].position;
+                    if (coordinateX == pos3.x && coordinateY == pos3.y){
+                    break;
+                }
+                }
 
                 if (euclideanDistance(currentWorm.position.x, currentWorm.position.y, coordinateX, coordinateY) > range) {
                     break;
                 }
+
 
                 Cell cell = gameState.map[coordinateY][coordinateX];
                 if (cell.type != CellType.AIR) {
@@ -298,6 +308,37 @@ public class Bot {
 
                 i += horizontal;
                 k += vertical;
+        }
+
+        return flag;
+    }
+
+
+    public boolean CheckClearDirection(Direction dir){
+        boolean flag = true;
+        int horizontal = dir.x;
+        int vertical = dir.y;
+        Cell cell;
+        Worm[] TeamWorm = gameState.myPlayer.worms;
+        int i = currentWorm.position.x;
+        int k = currentWorm.position.y;
+        boolean clear = false;
+        while(i <= currentWorm.position.x + currentWorm.weapon.range && k <= currentWorm.position.y + currentWorm.weapon.range && (!clear) ) {
+            for (int j = 0;j < TeamWorm.length;j++){
+                if (isValidCoordinate(i,k)) {
+                    cell = gameState.map[k][i];
+                    if ((TeamWorm[j].position.x == cell.x && TeamWorm[j].position.y == cell.y) || (cell.type == CellType.DIRT)) {
+
+                        flag = false;
+                    }
+                    Worm enemyWorm = NearestEnemy(currentWorm);
+                    if (enemyWorm.position.x == cell.x && enemyWorm.position.y == cell.y) {
+                        clear = true;
+                    }
+                    i += horizontal;
+                    k += vertical;
+                }
+            }
         }
 
         return flag;
