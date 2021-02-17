@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 
 public class Bot {
 
-    private Random random;
-    private GameState gameState;
-    private Opponent opponent;
-    private MyWorm currentWorm;
+    private final Random random;
+    private final GameState gameState;
+    private final Opponent opponent;
+    private final MyWorm currentWorm;
     private final Cell[][] myMap;
     private final List<Position> powerUpPosition;
 
@@ -35,63 +35,26 @@ public class Bot {
     }
 
     public Command run() {
-
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
             return new ShootCommand(direction);
         }
 
-        if (CanBananaBomb(currentWorm)) {
-            for (Worm Target : opponent.worms) {
-                if (Distance(currentWorm.position, Target.position) <= 5) {
-                    return new BananaCommand(Target.position.x,Target.position.y);
-                }
-            }
-        }
-
-        List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-
         Position healthPack = new Position();
         if (powerUpPosition.size() > 0) {
             healthPack = NearestPowerUp();
-        }
-        if (powerUpPosition.size() > 0){
             return DigAndMove(healthPack);
-        }
-        else {
+        } else {
             return Hunt();
         }
-//        if (currentWorm.position.x <= healthPack.x) {
-//            block.x = currentWorm.position.x + 1;
-//        } else {
-//            block.x = currentWorm.position.x - 1;
-//        }
-//
-//        if (currentWorm.position.y <= healthPack.y) {
-//            block.y = currentWorm.position.y + 1;
-//        } else {
-//            block.y = currentWorm.position.y - 1;
-//        }
-//
-//        if (block.type == CellType.AIR) {
-//            return new MoveCommand(block.x, block.y);
-//        } else if (block.type == CellType.DIRT) {
-//            return new DigCommand(block.x, block.y);
-//        }
-//
-//        return new DoNothingCommand();
     }
 
-
-
     public Command DigAndMove(Position destination) {
-        Position Mywormpost;
-        Mywormpost = currentWorm.position;
+        Position Mywormpost = currentWorm.position;
         Position NextCell = FindNextCellinPath(Mywormpost,destination);
-        int x = NextCell.x;
-        int y = NextCell.y;
-        Cell block = gameState.map[y][x];
+
+        Cell block = gameState.map[NextCell.y][NextCell.x];
         if (block.type == CellType.AIR) {
             return new MoveCommand(block.x, block.y);
         } else if (block.type == CellType.DIRT) {
@@ -100,6 +63,21 @@ public class Bot {
         else {
             return  new DoNothingCommand();
         }
+    }
+
+    public boolean CanSnowBall(MyWorm myWorm, Worm enemyWorm) {
+        return  (myWorm.profession == Profession.TECHNOLOGIST)
+                && (myWorm.snowballs.count > 0)
+                && (enemyWorm.roundsUntilUnfrozen == 0)
+                && (Distance(myWorm.position, enemyWorm.position) < myWorm.snowballs.range)
+                && (Distance(myWorm.position, enemyWorm.position) > myWorm.snowballs.freezeRadius);
+    }
+
+    public boolean CanBananaBomb (MyWorm myWorm, Worm enemyWorm){
+        return (myWorm.profession == Profession.AGENT)
+                && (myWorm.bananaBombs.count > 0)
+                && (Distance(myWorm.position, enemyWorm.position) <= myWorm.bananaBombs.range)
+                && (Distance(myWorm.position, enemyWorm.position) > myWorm.bananaBombs.damageRadius);
     }
 
     public Position NearestPowerUp (){
@@ -225,7 +203,7 @@ public class Bot {
         return (int) (Math.sqrt(Math.pow(aX - bX, 2) + Math.pow(aY - bY, 2)));
     }
 
-    private int Distance (Position a,Position b){
+    private int Distance (Position a, Position b){
         double dx = Math.pow(a.x - b.x,2);
         double dy = Math.pow(a.y - b.y,2);
         return (int) (Math.sqrt((dx + dy)));
@@ -258,33 +236,23 @@ public class Bot {
     }
 
     public Command Hunt(){
-        Position MyWormposition = currentWorm.position;
-        int min = 1000;
+        Position TargetPosition = NearestEnemy(currentWorm);
+        return DigAndMove(TargetPosition);
+    }
+
+    public Position NearestEnemy (MyWorm myWorm) {
+        Position MyWormPosition = myWorm.position;
         Worm Target = new Worm();
+        int min = 1000;
         for (Worm EnemyWorm : opponent.worms){
             if (EnemyWorm.health > 0){
-                int temp = Distance(MyWormposition,EnemyWorm.position);
+                int temp = Distance(MyWormPosition, EnemyWorm.position);
                 if (temp < min){
                     min = temp;
                     Target = EnemyWorm;
                 }
             }
         }
-        Position TargetPosition = Target.position;
-        return DigAndMove(TargetPosition);
-    }
-
-    public boolean CanBananaBomb (MyWorm myWorm){
-        boolean flag = false;
-        if (myWorm.profession == Profession.AGENT){
-            for (Worm Target : opponent.worms){
-                if (Distance(myWorm.position, Target.position) <= 5){
-                    if (myWorm.bananaBombs.count > 0){
-                        flag = true;
-                    }
-                }
-            }
-        }
-        return flag;
+        return Target.position;
     }
 }
