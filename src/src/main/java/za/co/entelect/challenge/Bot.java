@@ -41,16 +41,13 @@ public class Bot {
             return new ShootCommand(direction);
         }
 
-        List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        int cellIdx = random.nextInt(surroundingBlocks.size());
         int powerUpIdx = 0;
         Position healthPack = new Position();
         if (powerUpPosition.size() > 0) {
             powerUpIdx = random.nextInt(powerUpPosition.size());
             healthPack = powerUpPosition.get(powerUpIdx);
         }
-        System.out.println(powerUpPosition.size());
-        Cell block = surroundingBlocks.get(cellIdx);
+        
         Position center = new Position();
         center.x = 17;
         center.y = 17;
@@ -60,35 +57,14 @@ public class Bot {
         else {
             return DigAndMove(center);
         }
-//        if (currentWorm.position.x <= healthPack.x) {
-//            block.x = currentWorm.position.x + 1;
-//        } else {
-//            block.x = currentWorm.position.x - 1;
-//        }
-//
-//        if (currentWorm.position.y <= healthPack.y) {
-//            block.y = currentWorm.position.y + 1;
-//        } else {
-//            block.y = currentWorm.position.y - 1;
-//        }
-//
-//        if (block.type == CellType.AIR) {
-//            return new MoveCommand(block.x, block.y);
-//        } else if (block.type == CellType.DIRT) {
-//            return new DigCommand(block.x, block.y);
-//        }
-//
-//        return new DoNothingCommand();
     }
 
 
     private Command DigAndMove(Position destination) {
-        Position Mywormpost;
-        Mywormpost = currentWorm.position;
+        Position Mywormpost = currentWorm.position;
         Position NextCell = FindNextCellinPath(Mywormpost,destination);
-        int x = NextCell.x;
-        int y = NextCell.y;
-        Cell block = gameState.map[y][x];
+
+        Cell block = gameState.map[NextCell.y][NextCell.x];
         if (block.type == CellType.AIR) {
             return new MoveCommand(block.x, block.y);
         } else if (block.type == CellType.DIRT) {
@@ -101,23 +77,20 @@ public class Bot {
 
     public Position FindNextCellinPath (Position origin, Position destination){
         Position NextPos = new Position();
+
         if (origin.x < destination.x){
             NextPos.x = origin.x + 1;
-        }
-        else if (origin.x > destination.x){
+        } else if (origin.x > destination.x){
             NextPos.x = origin.x - 1;
-        }
-        else {
+        } else {
             NextPos.x = origin.x;
         }
 
         if (origin.y < destination.y){
             NextPos.y = origin.y + 1;
-        }
-        else if (origin.y > destination.y){
+        } else if (origin.y > destination.y){
             NextPos.y = origin.y - 1;
-        }
-        else {
+        } else {
             NextPos.y = origin.y;
         }
 
