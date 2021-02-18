@@ -47,15 +47,35 @@ public class Bot {
     }
     public Command Strategy (MyWorm myWorm){
         Worm Target = NearestEnemy(currentWorm);
-        if (CanSnowBall(currentWorm,Target)){
-            return new SnowBallCommand(Target.position.x,Target.position.y);
-        }
-        else if (CanBananaBomb(currentWorm,Target)){
-            return new BananaCommand(Target.position.x,Target.position.y);
+        if (myWorm.profession != Profession.COMMANDO) {
+            if (CanSnowBall(currentWorm, Target)) {
+                return new SnowBallCommand(Target.position.x, Target.position.y);
+            } else if (CanBananaBomb(currentWorm, Target)) {
+                return new BananaCommand(Target.position.x, Target.position.y);
+            } else {
+
+                Position healthPack = new Position();
+                if (powerUpPosition.size() > 0 && myWorm.health < 50) {
+                    healthPack = NearestPowerUp();
+                    return DigAndMove(healthPack);
+                } else {
+                    if (myWorm.health > 80){
+                        if(currentWorm.position.x < 13 && currentWorm.position.y < 13){
+                            return DigAndMove(healthPack);
+                        }
+                        else {
+                            return Kill_Agent();
+                        }
+                    }
+                    else {
+                        return Hunt();
+                    }
+                }
+            }
         }
         else {
             Position healthPack = new Position();
-            if (powerUpPosition.size() > 0) {
+            if (powerUpPosition.size() > 0 ) {
                 healthPack = NearestPowerUp();
                 return DigAndMove(healthPack);
             } else {
@@ -343,5 +363,22 @@ public class Bot {
 
         return flag;
     }
+    public Command Kill_Agent (){
+        Worm Target = new Worm();
+        for (Worm EnemyWorm : opponent.worms){
+            if (EnemyWorm.health > 0 && EnemyWorm.profession == Profession.COMMANDO){
+                Target = EnemyWorm;
+                }
+            }
+        if (Target.profession != Profession.COMMANDO){
+            return Hunt();
+        }
+        else {
+            return DigAndMove(Target.position);
+        }
+        }
 
-}
+    }
+
+
+
