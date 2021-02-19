@@ -5,7 +5,13 @@ Program ini ditulis dalam rangka menyelesaikan Tugas Besar 1 dari mata kuliah IF
 Dengan menggunakan algoritma *greedy*, Bot NganjukGGWP buatan NganjukLovers ini diharapkan untuk selalu siap sedia untuk bertempur dan dapat mengalahkan lawan-lawan yang tidak kalah hebat.
 
 ## Tentang Algoritma Greedy
-Pada program ini diterapkan beberapa algoritma greedy yaitu :
+Pada program ini menggunakan strategi algoritma greedy sehingga :
+1. Worms akan bergerak sesuai rolenya. Agent dan Technologist akan bergerak mencari Commando musuh, menyerangnya dan mengalahkannya secepat mungkin. Sementara Commando akan bergerak mencari power up secepatnya.
+2. Setelah fungsi objektif dilaksanakan, worms yang masih hidup akan mencari musuh yang tersisa dan menyerangnya.
+3. Jika musuh dalam jarak 5 kotak dari currentWorm maka worms akan mengeluarkan snowball dan banana bomb jika persediaan belum habis.
+4. Jika musuh dalam jarak tembak dan tidak ada cell bertipe DIRT maka worms akan menyerang musuh
+5. Ulangi langkah 2 sampai 4 hingga permainan selesai.
+
 
 ## Requirement Program
 Program berjalan dengan baik dengan spesifikasi :
